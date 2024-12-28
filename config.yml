@@ -10,11 +10,11 @@ admin:
  - 2712878343
 # Bot运行地址，不要添加端口！
 # Bot's running address. Do not add port!
-run_host: localhost
+run_host: 127.0.0.1
 
 # 以下为默认配置
 # Default Config
 # work_port: 3003
 # admin:
 #  - 0
-# run_host: localhost
+# run_host: 127.0.0.1

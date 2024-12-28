@@ -2,8 +2,9 @@ import os
 import flask
 import yaml
 import requests
+from functions import *
 
-version = "v0.5.0-dev-1"
+version = "v0.5.0-dev-2"
 bot_server = flask.Flask(__name__)
 api_url = "http://127.0.0.1:3000"
 
@@ -29,8 +30,8 @@ def init():
             print("未找到命令配置文件! 正在生成...\nCannot found commands file! Creating...")
             with open("commands.yml", "w", encoding="UTF-8") as f:
                 f.write("# GJBot 命令配置文件\n# GJBot Commands Config File\n\n# 请在下方添加命令\n# Please add commands below\n"
-                        "command_list:\n test:\n  description: 测试命令\n  usage: #test\n  permission: everyone\n  enable: true\n"
-                        " help:\n  description: 帮助命令\n  usage: #help\n  permission: everyone\n  enable: true\n")
+                        "command_list:\n test:\n  description: 测试命令\n  usage: #test\n  permission: admin\n  enabled: true\n  fn: null\n"
+                        " help:\n  description: 帮助命令\n  usage: #help\n  permission: everyone\n  enabled: true\n  fn: help_command\n")
         print("创建成功! 请修改配置后重启程序!\nCreated Succeed! Please mod it and then restart!")
         return False
     else:
@@ -44,14 +45,16 @@ def main():
     else:
         pass
 
-def getCommandList():
+def get_command_list():
     with open("commands.yml", "r", encoding="UTF-8") as command_list:
         commands = yaml.safe_load(command_list)
-    return list(commands)
+    return commands["command_list"]
 
-def send_msg(msg: str, uid: str | int, gid: str | int | None,
+def send_msg(msg: str | None, uid: str | int, gid: str | int | None,
              mid: str | int | None = None):  # 发送信息函数,msg: 正文,uid: QQ号,gid: 群号,mid: 消息编号
     data = {}
+    if msg is None:
+        return
     if mid is not None:  # 当消息编号不为None时,则发送的消息为回复
         data.update({"message": f"[CQ:reply,id={mid}]{msg}"})
     else:  # 反之为普通消息
@@ -68,43 +71,46 @@ def send_msg(msg: str, uid: str | int, gid: str | int | None,
         print(e)
 
 def command_process(msg: str, uid: str | int, gid: str | int | None, mid: str | int | None):
-    command = getCommandList()
-    if msg in command["command_list"]:
-        for commands, detail in command["command_list"].items():
-            if msg == commands:
-                if detail["enable"] is True:
-                    if detail["permission"] == "everyone":
-                        send_msg(detail["description"], uid, gid, mid)
-                    elif detail["permission"] == "admin":
-                        admin = load_config()[-1]
-                        if uid in admin:
-                            for need_msg in detail["send"]:
-                                send_msg(need_msg, uid, gid, mid)
-                        else:
-                            send_msg("权限不足!", uid, gid, mid)
+    commands = get_command_list()
+    if msg in commands:
+        detail = commands[msg]
+        if detail["enabled"] is True:
+            if detail["permission"] == "everyone":
+                if detail["fn"] is not None:
+                    globals()[detail["fn"]](msg, uid, gid, mid)
+                if detail.get("send") is not None:
+                    for need_msg in detail["send"]:
+                        send_msg(need_msg, uid, gid, mid)
+            elif detail["permission"] == "admin":
+                admin = load_config()[-1]
+                if uid in admin:
+                    if detail["fn"] is not None:
+                        globals()[detail["fn"]](msg, uid, gid, mid)
+                    if detail.get("send") is not None:
+                        for need_msg in detail["send"]:
+                            send_msg(need_msg, uid, gid, mid)
                 else:
-                    send_msg("命令未启用!", uid, gid, mid)
+                    send_msg("权限不足!", uid, gid, mid)
+        else:
+            send_msg("命令未启用!", uid, gid, mid)
 
 @bot_server.post("/")
 def process():
     data = flask.request.get_json()  # 获取提交数据
     uid = data.get("user_id")
-    admin = load_config()[-1]
-    if uid in admin:  # 判断消息是否来自管理员(主人)
-        gid = data.get("group_id")
-        mid = data.get("message_id")
-        msg = data.get("raw_message")
-        if msg is not None:
-            msg = msg.replace("&#91;", "[").replace("&#93;", "]").replace("&amp;", "&").replace("&#44;",
-                                                                                                ",")  # 消息需要将URL编码替换到正确内容
-            if msg.startswith("#"):
-                # 去除msg的#
-                msg = msg.replace("#", "")
-                command_process(msg, uid, gid, mid)  # 处理命令
-            else:
-                pass
+    gid = data.get("group_id")
+    mid = data.get("message_id")
+    msg = data.get("raw_message")
+    if msg is not None:
+        msg = msg.replace("&#91;", "[").replace("&#93;", "]").replace("&amp;", "&").replace("&#44;",
+                                                                                            ",")  # 消息需要将URL编码替换到正确内容
+        if msg.startswith("#"):
+            # 去除msg的#
+            msg = msg.replace("#", "")
+            command_process(msg, uid, gid, mid)  # 处理命令
+    return "", 204
 
 if __name__ == "__main__":
     main()
-    api_url = load_config()[2]
-    bot_server.run(port=load_config()[0], host=load_config()[1])
+    port, host, _ = load_config()
+    bot_server.run(port=port, host=host)
