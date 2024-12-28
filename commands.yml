@@ -1,0 +1,15 @@
+command_list:
+ help:
+  description: 获取命令帮助
+  usage: "#help"
+  permission: everyone
+  enabled: true
+  send:
+   - "abab"
+ test:
+  description: 测试
+  usage: "#test"
+  permission: everyone
+  enabled: true
+  send:
+   - "test"
