@@ -2,6 +2,14 @@
 
 GJBot 是一个基于 Flask 的轻量级 QQ 机器人，支持命令配置和消息处理，方便用户快速部署和自定义。
 
+## 注意事项
+1. 该程序需搭配 [`LLOneBot`](https://llonebot.github.io/zh-CN/) 使用
+2. v0.5.0-dev-1 版本开始，程序不再以`FloraBot`为基础，而是完全重写
+3. 使用时请遵守 GPL-3.0 许可证
+4. functions.py代码请自行辨别是否会损害设备，第三方代码与gjyyds1无关
+5. dev分支为开发版，功能未经测试，请不要在生产环境使用
+6. bug反馈请提交issues(有能力修复的可以提交PR)
+
 ## 特性
 
 - 使用 Flask 提供 HTTP 接口。
@@ -41,8 +49,8 @@ pip install flask pyyaml requests
 1. 下载或克隆项目代码：
 
 ```bash
-git clone <项目地址>
-cd <项目目录>
+git clone https://github.com/gjyyds1/GJBot.git
+cd GJBot-master
 ```
 
 2. 运行程序：
