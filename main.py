@@ -1,10 +1,14 @@
 import os
+import importlib
+
 import flask
 import yaml
 import requests
-from functions import *
 
-version = "v0.5.0-dev-2"
+from functions import *
+from models import save_message
+
+version = "v0.6.0-dev-1"
 bot_server = flask.Flask(__name__)
 api_url = "http://127.0.0.1:3000"
 
@@ -15,7 +19,8 @@ def load_config():
     port = int(config["work_port"])
     run_host = str(config["run_host"])
     admin = list(config["admin"])
-    return port, run_host, admin
+    save_msg = bool(config["save_messages"])
+    return port, run_host, admin, save_msg
 
 def init():
     if not os.path.exists("config.yml"):
@@ -24,14 +29,15 @@ def init():
             f.write(f"# GJBot 配置文件 版本: {version}\n# GJBot Config File Version: {version}\n\n# 这是LLOneBot的json数据上报地址\n# This is LLOneBot's json data report host\nwork_port: 3003\n"
                    f"# 管理员QQ号\n# Admin's qqid(uid)\nadmin:\n - 0\n"
                    f"# Bot运行地址，不要添加端口！\n# Bot's running address. Do not add port!\nrun_host: localhost\n"
+                   f"# 是否保存消息\n# Save messages or not\nsave_messages: false\n"
                    f"\n# 以下为默认配置\n# Default Config\n"
-                   f"# work_port: 3003\n# admin:\n#  - 0\n# run_host: localhost\n")
+                   f"# work_port: 3003\n# admin:\n#  - 0\n# run_host: localhost\n# save_messages: false\n")
         if not os.path.exists("commands.yml"):
             print("未找到命令配置文件! 正在生成...\nCannot found commands file! Creating...")
             with open("commands.yml", "w", encoding="UTF-8") as f:
                 f.write("# GJBot 命令配置文件\n# GJBot Commands Config File\n\n# 请在下方添加命令\n# Please add commands below\n"
                         "command_list:\n test:\n  description: 测试命令\n  usage: #test\n  permission: admin\n  enabled: true\n  fn: null\n"
-                        " help:\n  description: 帮助命令\n  usage: #help\n  permission: everyone\n  enabled: true\n  fn: help_command\n")
+                        " help:\n  description: 帮助命令\n  usage: #help\n  permission: everyone\n  enabled: true\n  fn: functions@help_command\n")
         print("创建成功! 请修改配置后重启程序!\nCreated Succeed! Please mod it and then restart!")
         return False
     else:
@@ -77,15 +83,21 @@ def command_process(msg: str, uid: str | int, gid: str | int | None, mid: str | 
         if detail["enabled"] is True:
             if detail["permission"] == "everyone":
                 if detail["fn"] is not None:
-                    globals()[detail["fn"]](msg, uid, gid, mid)
+                    program_name, function_name = detail["fn"].split("@")  # 分割程序名和函数名
+                    module = importlib.import_module(program_name)  # 动态导入模块
+                    func = getattr(module, function_name)  # 获取函数
+                    func(msg, uid, gid, mid)  # 调用函数
                 if detail.get("send") is not None:
                     for need_msg in detail["send"]:
                         send_msg(need_msg, uid, gid, mid)
             elif detail["permission"] == "admin":
-                admin = load_config()[-1]
+                admin = load_config()[2]
                 if uid in admin:
                     if detail["fn"] is not None:
-                        globals()[detail["fn"]](msg, uid, gid, mid)
+                        program_name, function_name = detail["fn"].split("@")  # 分割程序名和函数名
+                        module = importlib.import_module(program_name)  # 动态导入模块
+                        func = getattr(module, function_name)  # 获取函数
+                        func(msg, uid, gid, mid)  # 调用函数
                     if detail.get("send") is not None:
                         for need_msg in detail["send"]:
                             send_msg(need_msg, uid, gid, mid)
@@ -93,6 +105,8 @@ def command_process(msg: str, uid: str | int, gid: str | int | None, mid: str | 
                     send_msg("权限不足!", uid, gid, mid)
         else:
             send_msg("命令未启用!", uid, gid, mid)
+    else:
+        send_msg("未找到该命令!", uid, gid, mid)
 
 @bot_server.post("/")
 def process():
@@ -104,6 +118,11 @@ def process():
     if msg is not None:
         msg = msg.replace("&#91;", "[").replace("&#93;", "]").replace("&amp;", "&").replace("&#44;",
                                                                                             ",")  # 消息需要将URL编码替换到正确内容
+        if load_config()[-1] is not None:
+            if load_config()[-1] is True:
+                save_message(msg, gid, uid, mid)
+            else:
+                pass
         if msg.startswith("#"):
             # 去除msg的#
             msg = msg.replace("#", "")
@@ -112,5 +131,5 @@ def process():
 
 if __name__ == "__main__":
     main()
-    port, host, _ = load_config()
+    port, host, _, _ = load_config()
     bot_server.run(port=port, host=host)

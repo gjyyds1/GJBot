@@ -6,7 +6,7 @@ GJBot 是一个基于 Flask 的轻量级 QQ 机器人，支持命令配置和消
 1. 该程序需搭配 [`LLOneBot`](https://llonebot.github.io/zh-CN/) 使用
 2. v0.5.0-dev-1 版本开始，程序不再以`FloraBot`为基础，而是完全重写
 3. 使用时请遵守 GPL-3.0 许可证
-4. functions.py代码请自行辨别是否会损害设备，第三方代码与gjyyds1无关
+4. 第三方代码请自行辨别是否会损害设备，第三方代码与gjyyds1无关
 5. dev分支为开发版，功能未经测试，请不要在生产环境使用
 6. bug反馈请提交issues(有能力修复的可以提交PR)
 
@@ -41,7 +41,7 @@ GJBot 是一个基于 Flask 的轻量级 QQ 机器人，支持命令配置和消
 运行以下命令安装必要的依赖：
 
 ```bash
-pip install flask pyyaml requests
+python3 -m pip install flask pyyaml requests
 ```
 
 ### 初始化项目
@@ -56,7 +56,7 @@ cd GJBot-master
 2. 运行程序：
 
 ```bash
-python main.py
+python3 main.py
 ```
 
 如果配置文件（`config.yml` 和 `commands.yml`）不存在，程序会自动生成默认配置文件。请根据需要修改配置后重启程序。
@@ -68,6 +68,7 @@ python main.py
 - `work_port`: 程序监听的端口号。
 - `admin`: 管理员 QQ 号列表。
 - `run_host`: 程序运行的主机地址。
+- `save_messages`: 是否保存聊天记录。
 
 #### 示例
 
@@ -76,6 +77,7 @@ work_port: 3003
 admin:
  - 2712878343
 run_host: 127.0.0.1
+save_messages: true
 ```
 
 #### `commands.yml`
@@ -85,7 +87,7 @@ run_host: 127.0.0.1
  `usage`: 命令用法。
  `permission`: 权限要求（`everyone` 或 `admin`）。
  `enabled`: 是否启用命令。
- `fn`: 对应的功能函数。
+ `fn`: 对应的功能函数。（文件名@函数名）
  `send`: 
   - `发送的消息内容。
 
@@ -98,7 +100,7 @@ command_list:
   usage: "#help"
   permission: everyone
   enabled: true
-  fn: help_command
+  fn: functions@help_command
   send:
    - null
  test:
@@ -132,7 +134,7 @@ def new_command(msg, uid, gid, mid):
   usage: "#new"
   permission: everyone
   enabled: true
-  fn: new_command
+  fn: new_functions@new_command
   send:
    - null
 ```

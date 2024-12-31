@@ -9,7 +9,7 @@ command_list:
   usage: "#help"
   permission: everyone
   enabled: true
-  fn: help_command
+  fn: functions@help_command # 调用在functions.py中的help_command函数
   send:
    - null
  test:

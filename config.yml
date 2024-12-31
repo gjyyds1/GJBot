@@ -7,10 +7,14 @@ work_port: 3003
 # 管理员QQ号
 # Admin's qqid(uid)
 admin:
- - 2712878343
+ - 0
 # Bot运行地址，不要添加端口！
 # Bot's running address. Do not add port!
 run_host: 127.0.0.1
+
+# 是否保存消息
+# Save messages or not
+save_messages: false
 
 # 以下为默认配置
 # Default Config
@@ -18,3 +22,4 @@ run_host: 127.0.0.1
 # admin:
 #  - 0
 # run_host: 127.0.0.1
+# save_messages: false
