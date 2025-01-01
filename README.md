@@ -115,7 +115,7 @@ command_list:
 
 ## 自定义功能
 
-### 添加新命令
+### 添加新命令 - 使用现有functions.py
 
 1. 在 `functions.py` 文件中定义新功能函数。例如：
 
@@ -141,9 +141,31 @@ def new_command(msg, uid, gid, mid):
 
 3. 重启程序使配置生效。
 
-### 消息处理
+### 添加新命令 - 编写新功能函数
 
-所有接收到的消息会通过 `/` 接口进行处理，支持解析 OneBot 标准上报的数据。
+1. 创建新文件，例如 `new_functions.py`。
+2. 在新文件中定义新功能函数。例如：
+
+```python
+from main import send_msg
+
+def new_command(msg, uid, gid, mid):
+    send_msg("这是一个新命令的响应！", uid, gid, mid)
+```
+
+3. 在 `commands.yml` 文件中添加新命令配置。例如：
+
+```yaml
+ new:
+  description: 新命令
+  usage: "#new"
+  permission: everyone
+  enabled: true
+  fn: new_functions@new_command
+  send:
+   - null
+```
+4. 重启程序使配置生效。
 
 ## 注意事项
 
@@ -152,7 +174,7 @@ def new_command(msg, uid, gid, mid):
 
 ## 版本
 
-当前版本: `v0.5.0-dev-2`
+当前版本: `v0.6.0-dev`
 
 ## 开发者
 
