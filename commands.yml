@@ -1,0 +1,14 @@
+# GJBot 命令配置文件
+# GJBot Commands Config File
+
+# 请在下方添加命令
+# Please add commands below
+command_list:
+  help:
+    description: 获取命令帮助
+    usage: "#help"
+    permission: everyone
+    enabled: true
+    fn: help
+    send:
+      - null

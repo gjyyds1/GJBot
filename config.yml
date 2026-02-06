@@ -1,0 +1,20 @@
+# GJBot 配置文件 版本: 0.1.0.dev1
+# GJBot Config File Version: 0.1.0.dev1
+
+# 这是LLOneBot的json数据上报地址
+# This is LLOneBot's json data report host
+work_port: 3003
+# 管理员QQ号
+# Admin's qqid(uid)
+admin:
+ - 0
+# Bot运行地址，不要添加端口！
+# Bot's running address. Do not add port!
+run_host: 127.0.0.1
+
+# 以下为默认配置
+# Default Config
+# work_port: 3003
+# admin:
+#  - 0
+# run_host: 127.0.0.1
